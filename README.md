@@ -22,6 +22,19 @@ Below is the structural RTL connection map of the top-level module:
 
 ---
 
+##  Finite State Machine (FSM) Logic
+
+The downstream consumer module (`mod_b`) utilizes a deterministic 3-state Mealy/Moore hybrid FSM to safely coordinate memory read cycles with the FIFO status flags.
+
+
+
+### State Descriptions:
+* **`idle` (2'b00):** Default/Reset cycle. `rd_en` is held low. Automatically transitions to `s1`.
+* **`s1` (2'b01):** Pipeline alignment phase. Keeps `rd_en` low to prepare the internal registers.
+* **`data_phase` (2'b10):** The active read cycle. Asserts `rd_en = 1`, pulling a data byte from the FIFO buffer and updating `data_out_top` on the next clock edge. Transitions back to `idle`.
+
+![FSM State Diagram](module_b_FSM.png)
+
 ##  Functional Simulation & Waveform Output
 
 The design was verified using a custom testbench (`fifo_8x8_tb`) driving a 100MHz clock (`10ns` period). Data bytes (`8'hA5`, `8'h5C`, `8'h23`, `8'h44`) are streamed into `data_top` after a 2-cycle asynchronous reset recovery phase.
